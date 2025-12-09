@@ -1,0 +1,200 @@
+Q1.What is hoisting in JavaScript, and how does it affect Playwright test execution.
+
+Hoisting is JavaScript mechanism where the variable and named function declarations are moved to the top of their 
+scope during the compile phase , before the code is executed.
+
+1. Function declaration are fully hoisted.
+2. var variables are hoisted but initilized to undefined.
+3. let and const variables are hoisted but remain in TDZ Temporal Dead Zone.
+
+1. var
+
+var declarations are hoisted and initialized to undefined.
+So, you can access the variable before its declaration (but the value will be undefined until assignment).
+Ex:
+console.log(a); // ✅ undefined (hoisted + initialized)
+var a = 10;
+console.log(a); // 10
+
+2. let
+
+let is hoisted but not initialized.
+Exists in a Temporal Dead Zone (TDZ) from the start of the scope until the line of declaration.
+Accessing it before declaration throws a ReferenceError.
+Ex
+console.log(b); // ❌ ReferenceError (TDZ)
+let b = 20;
+console.log(b); // 20
+
+3. const
+
+Same as let → hoisted but not initialized, also in Temporal Dead Zone.
+The difference: must be initialized at the time of declaration.
+Ex:
+console.log(c); // ❌ ReferenceError (TDZ)
+const c = 30;
+console.log(c); // 30
+
+Q2. What is the difference between var, let, and const in terms of scoping and hoisting.
+
+var is function scoped and hoisted with undefined.
+let and const are block scoped but not initilized(temporal dead zone).
+
+Q3. What is Temporal Dead Zone (TDZ) in JavaScript?
+TDZ is a phase between entering a scope and the actual declaration where accesing a let and const throws reference error.
+
+
+Q4. How does trim() improve reliability in form input automation?
+
+trim() is a JavaScript string method used to remove whitespace from both the beginning and the end of a string.
+
+const name = " Ravi "
+const trimmedName = name.trim()
+
+Related methods
+
+trimStart() → removes only from the start
+
+trimEnd() → removes only from the end
+
+Q5. When would you use replaceAll() in test Automation?
+
+Syntax
+string.replaceAll(searchValue, replaceValue)
+
+searchValue → The substring or regex you want to replace.
+
+replaceValue → The string (or function) you want to replace it with.
+
+const text = "Playwright is fast. Playwright is reliable.";
+const newText = text.replaceAll("Playwright", "Selenium");
+
+console.log(newText);
+
+Q6.What is the differen between == and === in JavScript ? Give example where == returns true but === returns false?
+
+'5'==5; //true ('5' of datatype string is coerced to number datatype 5 )//
+Automatic conversion of values from one data type to another
+JavaScript is a loosely typed (dynamic) language,
+'5'===5;//false (string!=number)
+
+0==false; //true ( type coercion : false becomes 0)
+0===false; // false (number!=boolean)
+
+Q7. How replace() works?
+
+The replace() method in JavaScript is used to return a new string with the first occurrence of a substring or pattern replaced by another string.
+
+Syntax
+string.replace(searchValue, replaceValue)
+
+
+searchValue → The text or regex to find.
+
+replaceValue → The text (or function) to replace it with.
+Example 1: Replace a word (string)
+const text = "I love JavaScript. JavaScript is great!";
+const newText = text.replace("JavaScript", "Python");
+
+console.log(newText);
+// Output: "I love Python. JavaScript is great!"
+
+Q8. What is the difference between var, let, and const?
+
+var: function-scoped, hoisted (initialized as undefined), allows re-declaration.
+let: block-scoped, hoisted but not initialized (temporal dead zone), can be reassigned but not re-declared.
+const: block-scoped, must be initialized at declaration, cannot be reassigned.
+var: redeclare ✅, reassign ✅
+let: redeclare ❌, reassign ✅
+const: redeclare ❌, reassign ❌
+
+Q9. What is difference between Primitive and Non-Primitive?
+
+Primitive types:
+
+Number, String, Boolean, Null, Undefined, BigInt, Symbol
+It is Stored directly in memory, immutable (e.g., let x = 5).
+
+Non-Primitive types: Object (includes arrays, functions etc.)
+It is Stored as references, mutable (e.g., arrays, objects)
+
+Q10: Expalin the history behind JS naming convention?
+
+JS was created by Brendan Eich at Netscape in just 10 days, It's first name was Mocha.
+Before the official launch, Netscape temporarily renamed it as Livescript(Beta release)
+Finally as part of marketing deal with Netscape and Sun Microsystem. It was renamed as JavaScript to align with Java’s popularity at
+the time, even though it is not directly related to Java
+
+Early JS History
+
+1995: Brendan Eich created the first version of JS in just 10 days at Netscape.
+
+Initially called Mocha, then renamed LiveScript.
+
+🔹 Where Sun Microsystems Comes In
+
+At that time, Sun Microsystems owned the Java programming language.
+
+Java was very popular and marketed as the “write once, run anywhere” language.
+
+Netscape wanted to ride on that popularity for their new scripting language.
+
+So, Netscape partnered with Sun Microsystems in a marketing deal:
+
+They licensed the Java trademark from Sun.
+
+Renamed LiveScript → JavaScript in December 1995.
+
+This was purely a branding/marketing move, not a technical one.
+👉 JavaScript and Java are completely different languages.
+
+🔹 Aftermath
+
+1996: Microsoft made its own version called JScript (for Internet Explorer).
+
+To avoid fragmentation, ECMA International standardized JavaScript as ECMAScript in 1997.
+
+✅ So Sun Microsystems’ role was:
+They owned Java and allowed Netscape to use the Java brand name for “JavaScript” as part of a business/marketing strategy.
+
+European computer manufacturers association,in order to ensure browser compatibility the standard was framed by ECMA and its first version 
+Ecmascript1 was released in 1997.
+
+Q11. What is the difference between null and undefined?
+
+undefined → variable declared but not assigned a value.
+Var accountNumber=undefined
+
+null → intentional absence of value assigned by the programmer.
+Var LandlineNumber=Null
+
+Example 1: undefined
+let a;
+console.log(a);        // undefined (no value assigned)
+
+function test(x) {
+  console.log(x);
+}
+test();                // undefined (argument not passed)
+
+🔹 Example 2: null
+let b = null;
+console.log(b);        // null (explicitly assigned)
+
+let person = { name: "John", age: null };
+console.log(person.age); // null → meaning "no age specified"
+
+
+
+
+JA Coding Assignment Questions :
+
+1.check if a string is a palindrome?
+input: madam
+output: madam 
+
+2.find the most frequent character in a string?
+input : javascript
+
+3.count the number of vowels in a string
+input: function
