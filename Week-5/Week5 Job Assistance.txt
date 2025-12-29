@@ -1,0 +1,238 @@
+1. How does Playwright handle file downloads?
+
+👉 Playwright handles downloads using the download event.
+
+Whenever a file download is triggered (like clicking a "Download" button), Playwright emits a download event on the page object.
+You can listen for that event using page.waitForEvent("download").
+
+Example:
+const fileDownloader = page.waitForEvent("download"); // Waits for download event
+await page.locator('//span[text()="Select File & Download"]').first().click(); // Click triggers download
+const downloader = await fileDownloader; // Resolves once download starts
+
+
+✅ How it works internally:
+
+waitForEvent("download") returns a promise that resolves when the download starts.
+
+Once it resolves, the downloader object (of type Download) gives access to:
+
+downloader.suggestedFilename() → to get file name.
+
+downloader.path() → to get the temporary download path.
+
+downloader.saveAs(path) → to save it in a custom directory.
+
+📄 2. How can you verify the downloaded file name?
+
+You can easily assert the expected filename by comparing it with the actual filename suggested by the browser.
+
+Example:
+const expectedText = "report.pdf";
+const receivedText = downloader.suggestedFilename();
+
+expect(expectedText).toBe(receivedText);
+
+
+✅ Explanation:
+
+suggestedFilename() returns the name suggested by the server/browser.
+
+You can compare it against your expected name.
+
+It ensures the correct file was triggered for download.
+
+🧾 3. How do you capture and validate the file name being downloaded?
+
+You can use Node.js’s fs module to check if the file actually exists in the download path.
+
+Example:
+import fs from "fs";
+
+const filePath = "data/report.pdf";
+
+if (fs.existsSync(filePath)) {
+  console.log("✅ File is downloaded");
+} else {
+  console.log("❌ File is not downloaded");
+}
+
+
+✅ Explanation:
+
+fs.existsSync(path) checks if the file physically exists.
+
+Useful when you save the download manually using saveAs() (next example).
+
+Helps in verifying download completion as part of the test validation.
+
+💾 4. How do you download a file and save it to a custom path?
+
+You can use saveAs() method of the Download object to store the file anywhere you want.
+
+Example:
+import os from "os";
+
+const fileDownloader = page.waitForEvent("download");
+await page.locator('//span[text()="Select File & Download"]').click();
+const downloader = await fileDownloader;
+
+await downloader.saveAs(`${os.homedir()}/Downloads/${downloader.suggestedFilename()}`);
+
+
+✅ Explanation:
+
+saveAs(path) → saves the downloaded file to a given location.
+
+os.homedir() → dynamically gets your system’s home directory (works cross-platform).
+
+This is useful for organizing downloads in your framework (like storing under /downloads folder in your project).
+
+📤 5. How to automate file uploads using Playwright?
+
+There are two scenarios for file upload automation:
+
+Case 1: <input type="file"> directly available
+
+If the input element is visible in the DOM, you can use setInputFiles().
+
+await page.locator('input#fileUpload').setInputFiles("./Data/report.pdf");
+
+
+✅ Explanation:
+
+setInputFiles() sets the file for upload (Playwright directly assigns it to the input field).
+
+It doesn’t need manual interaction or dialogs.
+
+Case 2: Upload without direct <input> access (using FileChooser)
+
+When the upload input is hidden and triggered only after clicking an "Upload" button.
+
+const fileUploader = page.waitForEvent("filechooser"); // wait for file chooser dialog
+await page.locator('#uploadButton').click(); // triggers the dialog
+(await fileUploader).setFiles("./Data/logindata.json");
+
+
+✅ Explanation:
+
+page.waitForEvent("filechooser") listens for a file chooser event.
+
+Once the upload button is clicked, Playwright intercepts the dialog and lets you set files programmatically.
+
+🗂️ 6. Can you upload multiple files?
+
+✅ Yes, but only if the HTML has multiple attribute on the file input:
+
+<input type="file" multiple>
+
+Example:
+const fileUploader = page.waitForEvent("filechooser");
+await page.locator('#uploadButton').click();
+(await fileUploader).setFiles(["./Data/logindata.json", "./Data/logindata1.json"]);
+
+
+✅ Explanation:
+
+You can pass an array of file paths to setFiles().
+
+This mimics selecting multiple files from the OS file picker.
+
+🧾 7 & 8. How do you verify the uploaded file name on the page?
+
+After uploading, most applications display:
+
+A confirmation message, or
+
+The uploaded file name on the page.
+
+You can fetch and validate that text.
+
+Example:
+const uploadedFileName = await page.locator('#uploadedFileName').innerText();
+expect(uploadedFileName).toBe("report.pdf");
+
+
+✅ Explanation:
+
+innerText() fetches text content visible on UI.
+
+You assert it against the expected file name to confirm upload success.
+
+⚙️ 9. When should you use annotations (Playwright Test Runner)?
+
+Annotations help control or organize test execution.
+
+Annotation	Purpose
+test.only()	Runs only that test, skips others. Useful during debugging.
+test.skip()	Skips a specific test without running it.
+test.describe()	Groups related tests into a suite.
+test.fail()	Marks a test as expected to fail, even if it passes (useful for known bugs).
+Example:
+test.only("Run this test only", async () => { ... });
+test.skip("Skip this test", async () => { ... });
+test.fail("Known issue, expected to fail", async () => { ... });
+
+🧩 10. What’s the use of test.describe.only()?
+
+👉 test.describe.only() is used to run only that test suite.
+
+Example:
+test.describe.only("User Login Tests", () => {
+  test("Login with valid credentials", async () => { ... });
+  test("Login with invalid credentials", async () => { ... });
+});
+
+
+✅ Explanation:
+
+Only tests inside this suite will run; other describe blocks are ignored.
+
+Useful when debugging or focusing on one test group.
+
+💡 Bonus:
+If your test cases depend on each other, you can run them in serial mode:
+
+test.describe.serial("Dependent Tests", () => {
+  test("Create record", async () => { ... });
+  test("Edit record", async () => { ... });
+});
+
+
+Ensures tests run one after another (not parallel) — helpful for workflows where one test’s output is input for the next.
+
+11.How do you apply hooks like beforeEach inside describe blocks?
+
+You can define hooks inside test.describe() when you want them to run only for that suite, not for other tests in the file.
+
+✅ Example:
+import { test } from "@playwright/test";
+
+test.describe("Sample Suite", () => {
+
+  test.beforeEach(async () => {
+    console.log("🔥 Runs before each test inside this suite");
+  });
+
+  test("Test A", async () => {
+    console.log("Running Test A");
+  });
+
+  test("Test B", async () => {
+    console.log("Running Test B");
+  });
+
+});
+
+🧠 Output:
+🔥 Runs before each test inside this suite
+Running Test A
+🔥 Runs before each test inside this suite
+Running Test B
+
+⚙️ Hooks Summary
+Hook	Purpose	Execution Timing
+test.beforeAll()	Runs once before all tests in a suite	Before first test in describe
+test.beforeEach()	Runs before each test	Before every test in the suite
+test.afterEach()	Runs after each test	After every test in the suite
+test.afterAll()	Runs once after all tests	After last test in the suite
