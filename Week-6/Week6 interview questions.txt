@@ -1,0 +1,462 @@
+1. Why Do We Use storageState?
+
+Normally, each Playwright test runs in a fresh browser context, meaning:
+
+You lose your login session.
+
+You must log in again in every test. 😩
+
+Using storageState solves this problem by:
+
+Saving login state (cookies, tokens, etc.) to a JSON file.
+
+Loading that JSON in future tests to skip login steps. 🚀
+
+🧩 3️⃣ Example: How to Use It
+✅ Step 1: Save login state after login
+import { test, expect } from '@playwright/test';
+
+test('Login and save storage state', async ({ page }) => {
+  await page.goto('https://example.com/login');
+  await page.fill('#username', 'admin');
+  await page.fill('#password', 'Admin@123');
+  await page.click('button[type="submit"]');
+
+  // Save session to a file
+  await page.context().storageState({ path: 'auth.json' });
+});
+
+
+This will create a file named auth.json containing cookies and local storage data.
+
+
+test.use({
+
+storageState: 'path: 'auth.json'
+})
+
+2. What is API testing?
+
+An API (Application Programming Interface) is a set of rules that allows different software systems to communicate with each other.
+
+API Testing is a type of software testing where we directly test the Application Programming Interface (API) — without using the user interface (UI).
+It focuses on verifying that the backend logic, data transfer, and responses between two systems work correctly.
+
+EX:
+APIs act like messengers that allow two software systems to talk to each other.
+API testing checks whether this communication is happening correctly —
+that means, when one system sends a request, does the other system return the correct response?
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. What is the difference between UI testing and API testing?
+
+UI Testing:
+----------
+
+Purpose: UI testing is test how the application looks and behaves for the end user.
+Focus Area: UI: Frontend — buttons, forms, menus, visuals, navigation, etc.
+Tool Examples: UI-Selenium, Playwright, Cypress 
+Interface Tested: Graphical User Interface (GUI)
+Input/Output: User interacts through clicks, inputs, etc.
+Speed: Slower because it loads the full UI.
+Dependency: Depends on the application’s UI being ready.
+Error Detection: Finds UI bugs like broken buttons, misalignment.
+
+API Testing:
+------------
+
+Purpose: API is to test the backend logic, data exchange, and business rule
+Focus Area: API is Backend — request/response, status codes, data validation, etc.
+Tool Examples: UI-Selenium, Playwright, Cypress where as API
+Interface Tested: APIs (usually REST or SOAP services)
+Input/Output: Data is sent and received as JSON or XML.
+Speed: Faster since it doesn’t involve UI rendering.
+Dependency: Can be done even before UI is developed.
+Error Detection:Finds logic, performance, and data-related issues.
+
+ex: UI Testing: Checking if the “Login” button works when you click it on the webpage.
+    API Testing: Sending a POST request to the /login API and checking if it returns a success message and a token.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. What HTTP methods are commonly used in API testing?
+
+HTTP stands for HyperText Transfer Protocol, which is the protocol used to communicate between a client (like Postman or browser) and a server (API).
+The method part defines the type of operation you want the server to perform.
+
+HTTP methods are defined based on the type of operation you want to perform on a resource (like creating, reading, updating, or deleting data) in an API.
+
+Basic requirement: 
+------------------
+
+When you send an API request, you define:
+
+Endpoint (URL): Where to send the request.
+HTTP Method: What to do with the data.
+Body (optional): Data to send (for POST, PUT, PATCH).
+Headers: Extra information like content type or authorization.
+
+All HTTP Methods (Common + Rare):
+---------------------------------
+
+1. GET:
+Used to retrieve data from the server.
+
+2. POST:
+Used to create new data or send data to the server.
+
+3. PUT:
+Used to update or replace an existing resource completely.
+
+4. PATCH:
+Used to partially update a resource.
+
+5. DELETE:
+Used to remove or delete a resource.
+
+6. HEAD:
+Returns only response headers, no body — mainly for checking if the resource exists.
+
+7. OPTIONS:
+Used to know which methods are supported by the server for a given resource.
+
+8. TRACE:
+Used for debugging — shows the path a request takes to reach the server (echoes the request). (Rarely used due to security risks.)
+
+9. CONNECT:
+Used to establish a tunnel (e.g., for HTTPS through a proxy). (Mainly used in networking, not in regular API testing.)
+
+To summarize: 
+--------------
+
+In API testing, testers usually focus on GET, POST, PUT, PATCH, DELETE.
+The others (HEAD, OPTIONS, TRACE, CONNECT) are more technical or diagnostic and not commonly tested in functional API automation.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. What is status code 200, 201, 204, 400, 401, 403, 404, 500?
+
+A status code is a 3-digit number that the server sends back in response to an API request.
+It tells whether the request was successful, failed, or faced an issue.
+
+Importance:
+-----------
+
+✅ They help you understand what happened with your API request.
+✅ They allow debugging easily — whether failure is on client side or server side.
+✅ They make automated testing clear and reliable (e.g., test passes only if 200/201).
+✅ They help maintain standard communication between frontend and backend.
+
+Without status code:
+--------------------
+
+The client (like Postman, Playwright, or browser) won’t know if the request succeeded or failed.
+Debugging becomes difficult — you can’t identify errors easily.
+Automated tests may give wrong results because they can’t verify response type.
+The system loses standardization, and developers/testers can’t track issues correctly.
+
+HTTP Status Codes in API Testing:
+---------------------------------
+
+200 – OK:
+✅ The request was successful, and the server returned the expected response.
+Example: Data fetched correctly using a GET request.
+
+201 – Created:
+🆕 The request was successful, and a new resource has been created.
+Example: New user created successfully using a POST request.
+
+204 – No Content:
+🚫 The request was successful, but the server has no content to return.
+Example: After a successful DELETE request — resource deleted.
+
+400 – Bad Request:
+❌ The request was invalid or incorrect — server couldn’t understand it.
+Example: Missing required field or sending wrong data format.
+
+401 – Unauthorized:
+🔒 The request requires authentication, but no valid credentials were provided.
+Example: Missing or invalid access token.
+
+403 – Forbidden:
+🚫 The client is authenticated, but not allowed to access the resource.
+Example: Trying to access admin data with a normal user token.
+
+404 – Not Found:
+🔍 The server cannot find the requested resource.
+Example: The endpoint URL or record doesn’t exist.
+
+500 – Internal Server Error:
+💥 Something went wrong on the server side — a bug or crash in the backend code.
+Example: Database failure or unexpected exception in the API
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6. What is the difference between PUT and PATCH requests?
+
+PUT Request:
+-----------
+
+Purpose: Used to update or replace an entire existing resource.
+Operation Type: Full update — replaces the whole record with new data.
+Behavior: If a field is not sent in the request, it will be removed or overwritten with default/null.
+Use Case: When you want to completely replace a user’s details.
+
+Example Endpoint: PUT /users/5
+Example Body:
+
+{
+  "name": "Gauthami",
+  "job": "QA Engineer"
+}
+
+
+If the original record had an “email” field, it will be removed since it’s not included in the PUT request.
+
+PATCH Request:
+--------------
+
+Purpose: Used to partially update a resource.
+Operation Type: Partial update — modifies only the specified fields.
+Behavior: If a field is not sent in the request, it will remain unchanged.
+Use Case: When you want to update only one or few fields of a record.
+
+Example Endpoint: PATCH /users/5
+Example Body:
+
+{
+  "job": "Senior QA Engineer"
+}
+
+
+Here, only the job field will be updated; all other fields will stay the same.
+
+In Short:
+---------
+Feature	                     PUT	         PATCH
+Type of Update	           Full update	      Partial update
+Replaces Entire Data	     ✅ Yes	         ❌ No
+Keeps Unsent Fields	     ❌ No	         ✅ Yes
+Typical Use	     Replace full record    Update one or more fields
+Common Status Code	200 (OK)	    200 (OK) or 204 (No Content)
+
+In case post,
+------------
+
+If field missing → default or null (depends on API logic).
+If field empty → stored as empty string.
+If required field missing → may return 400 error.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+7. What are request headers and why are they important in API testing?
+
+Request headers are key-value pairs sent along with an API request to provide extra information about the request — like authentication, content type, or user details.
+They act like metadata for the API request — giving the server instructions on how to process your request.
+
+Common Examples of Headers:
+---------------------------
+
+Content-Type: Tells the server the format of the data you’re sending EX: application/json
+Accept: Tells the server what format you want the response in EX: application/json
+Authorization: Used to send login tokens or API keys for security EX: Bearer Token
+User-Agent: Identifies the client (browser, Postman, etc.) making the request EX: PostmanRuntime/7.36.1
+
+📋 Headers 
+
+Header Name	Purpose	Example / Explanation
+
+1) Postman-Token: A unique identifier automatically generated by Postman to track each request.
+    🔹 Used mainly for debugging or logging.
+    🔹 Not part of the actual API — it helps Postman ensure no duplicate requests when using the “Send” button multiple times.
+
+2) Content-Type: Tells the server what format of data is being sent in the request body.
+🔹 In your case: application/x-www-form-urlencoded
+This means the body data is sent in key=value pairs (used often in login or token requests).
+
+3) Content-Length : Indicates the size (in bytes) of the request body.	
+🔹 Automatically calculated by Postman.
+🔹 Helps the server know when the body content ends.
+
+4) Host: Specifies the domain name of the server where the request is being sent.
+🔹 Example: login.salesforce.com
+🔹 Required in every HTTP request (automatically added). EX:https://login.salesforce.com/services/oauth2/token
+
+5) User-Agent:Identifies the client (browser or tool) making the request.
+🔹 Example: PostmanRuntime/7.49.1
+🔹 Helps the server know who is sending the request — useful for analytics and debugging.
+
+6) Accept: Tells the server what response formats the client can handle.
+🔹 Example: */* means “I can accept any format”.
+🔹 Usually you’ll see application/json to specifically request JSON responses.
+
+7) Accept-Encoding:Tells the server what compression types the client supports.
+🔹 Example: gzip, deflate, br
+🔹 The server may compress the response to save bandwidth, and Postman will decompress it automatically.
+
+📘 Summary Table
+----------------
+Category	         Common Purpose
+
+Communication Setup	 Host, User-Agent, Accept-Encoding
+Data Handling	         Content-Type, Content-Length
+Security/Tracking	 Postman-Token
+Response Control	 Accept
+
+💡 Real-World Tip:
+-----------------
+
+In real API testing, you usually don’t have to manually set headers like Host or Content-Length.
+They are auto-generated by Postman or your test framework (like Playwright or RestAssured).
+But headers like Content-Type, Authorization, and Accept are important to define manually — because they affect how the server interprets your request.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+8. What is JSON and how is it used in API requests and responses?
+
+JSON (JavaScript Object Notation) is a lightweight, text-based data format used to store and exchange data between a client (like Postman or Playwright) and a server (API).
+It’s the most common format used in API requests and responses because it’s easy for humans to read and easy for machines to parse.
+
+{
+  "name": "Gauthami",
+  "role": "Tester",
+  "experience": 2
+}
+
+Here, 
+"name" is the key
+"Gauthami" is the value
+
+Common MIME Type (Content-Type):
+-------------------------------
+When sending JSON, we specify:
+
+Content-Type: application/json
+This tells the server: “I’m sending JSON data.”
+
+And for receiving JSON, we often set:
+Accept: application/json
+
+Advantages of JSON:
+------------------
+
+1) Lightweight – faster to transfer between client and server.
+2) Human-readable – easy to read and debug.
+3) Language-independent – used across Java, Python, JS, etc.
+4) Structured and organized – supports objects and arrays.
+5) Widely supported – almost all APIs use JSON format today.
+
+Summary: JSON is the universal language of APIs — used to send and receive structured data between client and server in an easy, consistent format.
+-------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+✅ Playwright-Specific API Questions
+
+9. How does Playwright support API testing?
+
+Playwright not only automates browsers for UI testing — it also provides built-in features to perform API testing using the APIRequestContext class.
+This allows testers to send API requests, verify responses, and combine UI + API testing in one framework.
+
+1) request Object (APIRequestContext):
+Playwright provides a global request object to make API calls like GET, POST, PUT, PATCH, or DELETE.
+
+Example:
+
+import { test, expect } from "@playwright/test";
+
+test("API Testing Example", async ({ request }) => {
+  const response = await request.get("https://reqres.in/api/users/2");
+  expect(response.status()).toBe(200);
+  console.log(await response.json());
+});
+
+
+Ex:
+
+request.get() → sends the GET API call
+response.status() → checks the status code
+response.json() → extracts the body in JSON format
+
+2) Supports All HTTP Methods:
+You can test all major API operations:
+
+request.get() → To fetch data
+request.post() → To create data
+request.put() / request.patch() → To update data
+request.delete() → To delete data
+
+3) Allows Headers and Body:
+You can send authentication tokens, headers, and request body just like in Postman.
+
+Example:
+
+const response = await request.post("https://reqres.in/api/users", {
+  headers: { "Content-Type": "application/json" },
+  data: { name: "John", job: "Tester" }
+});
+
+4️) Validates Responses Easily:
+Playwright makes it easy to verify the response using expect():
+
+expect(response.status()).toBe(201);
+expect(await response.json()).toHaveProperty("name", "John");
+
+5) Combine UI + API Testing:
+You can use APIs to prepare test data (e.g., create a user) and then verify the same data on the UI.
+Example:
+
+Use API to create a record.
+Open UI using Playwright and check if the record appears.
+
+6) Storage and Authentication:
+Playwright can store API tokens or cookies in the storage state file and reuse them in UI tests — avoiding repeated login steps.
+
+Example:
+
+await request.post("https://api.test.com/login", {
+  data: { username: "admin", password: "admin123" }
+});
+
+Advantages of Using Playwright for API Testing:
+----------------------------------------------
+
+1) No separate tool needed — API + UI testing in one place.
+2) Faster — Runs without loading any browser.
+3) Reusable — Can share tokens, cookies between API and UI.
+4) Integrated assertions — Use expect() for validation.
+5) upports parallel execution — Speeds up test runs.
+
+Summarize
+----------
+Playwright supports API testing through its request object, allowing testers to send requests, validate responses, and integrate API + UI testing seamlessly in one framework.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10. What is `request.newContext()` in Playwright?
+
+request.newContext() is a Playwright method used to create a new APIRequestContext — which acts like a workspace or environment for making API calls.
+request.newContext() creates a custom, reusable environment for API testing in Playwright — allowing you to define headers, tokens, and base URLs once and use them across multiple requests efficiently.
+It allows you to define base URLs, headers, authentication tokens, and cookies that apply to all API requests made within that context.
+
+request.newContext() in API testing works very similarly to browser.newContext() in UI testing
+
+browser.newContext(): 
+------------------
+Used For: Creating a new browser session (for UI testing)
+Purpose:To launch a clean, isolated browser window (like an incognito tab)
+Isolation: Each browser context has its own cookies, cache, and storage
+Reusability: Multiple pages can be created under one browser context
+Example Use Case: You want to test login in a new browser window without shared data
+Cleanup: await context.close() to close the session
+
+request.newContext():
+--------------------
+Used for: creating a new API session (for API testing)
+Purpose: To launch a clean, isolated API environment
+Isolation: Each request context has its own headers, tokens, and cookies
+Reusability : Multiple API calls can be made under one API context
+Example Use Case: You want to test APIs with a new token or different base URL
+Cleanup: await apiContext.dispose() to close the API context
+
+
+Why this isolation is important:
+-------------------------------
+
+It avoids token conflicts between tests.
+It lets you test APIs for different users or environments (e.g., Admin vs Normal user).
+It improves test reliability — one test’s headers or cookies don’t affect another.
+
+request.newContext() is to API testing what browser.newContext() is to UI testing 
+both create independent, isolated environments so tests remain clean, reusable, and conflict-free
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
