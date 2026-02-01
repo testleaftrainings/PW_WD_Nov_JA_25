@@ -1,0 +1,606 @@
+Q1. What are wrapper methods? Why do we use them in automation frameworks?
+
+Wrapper methods are custom reusable methods created on top of Automation tool to perform UI operations with additional logic.
+Instead of calling click(), sendKeys(), fill() directly in tests, we wrap them inside our own wrapper methods.
+
+Advantages
+----------
+Avoid code duplication
+Handle waits centrally
+Add logging & reporting
+Handle exceptions consistently
+Improve readability & maintainability
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q2. Why is Jira integration important in an automation ecosystem?
+
+Jira integration provides:
+
+1. End-to-end traceability
+Requirement → Test Case → Automation → Execution Report → Defect
+
+2. Automatic defect reporting
+Failed tests can automatically raise Jira tickets with logs/screenshots.
+
+3. Improved collaboration
+Developers, QA, and managers track the same source of truth.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q3. How do you automatically create Jira bugs from Playwright test failures?
+
+Automation is done using Jira REST APIs integrated in the test reporter.
+
+Typical flow:
+-------------
+
+Capture failure details through Playwright reporters:
+Error message
+Screenshot
+Trace file
+Test name
+
+Build a REST API request:
+-------------------------
+
+POST /rest/api/3/issue
+
+Payload includes:
+-----------------
+
+Summary
+Description
+Severity
+Attachments
+Optionally attach files via:
+
+/rest/api/3/issue/{issueId}/attachments
+
+
+Trigger this automatically inside a custom reporter so every failure generates or updates a Jira issue.
+This creates a seamless defect tracking pipeline.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q4. what are the different features supported by playwright?
+
+1. StorageState()
+-------------------
+
+storageState() in Playwright is used to save and reuse the browser’s authentication state, such as cookies, localStorage, and sessionStorage. 
+This helps avoid logging in again for every test.
+
+ex:
+// After login to store the session details in specific path
+
+await page.context().storageState({ path: 'auth.json' });
+
+// Reuse storgeState() in tests
+
+const context = await browser.newContext({
+  storageState: 'auth.json'
+});
+
+
+2. PersistentContext
+--------------------
+
+PersistentContext in Playwright is a browser context that persists user data (cookies, localStorage, cache, session data) across browser restarts
+by using a user data directory.
+
+ex: const context = await chromium.launchPersistentContext(
+  './user-data',
+  {
+    headless: false
+  }
+);
+
+const page = await context.newPage();
+await page.goto('https://example.com');
+
+
+
+3. Parallel Testing
+-------------------
+
+By default, Playwright runs test files in parallel.
+Playwright runs tests in separate worker processes, and each worker uses an isolated browser context, ensuring tests do not interfere with each other.
+
+Ex: 
+test.describe.parallel('Parallel tests', () => {
+  test('Test 1', async ({ page }) => {});
+  test('Test 2', async ({ page }) => {});
+});
+
+
+4.Cross Browser Testing
+-----------------------
+
+Cross-browser testing in Playwright allows the same tests to run on multiple browser like Chromium, Firefox, and WebKit to ensure application compatibility 
+across browser and to ensure application works consistently everywhere.
+
+PW supported browsers are
+Chromium (Chrome, Edge)
+Firefox
+WebKit (Safari)
+
+usage:
+------
+
+To identify browser-specific issues
+To ensure consistent user experience
+To increase application reliability
+Required in most CI/CD pipelines
+
+ex: 
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  projects: [
+    {
+      name: 'Chromium',
+      use: { browserName: 'chromium' },
+    },
+    {
+      name: 'Firefox',
+      use: { browserName: 'firefox' },
+    },
+    {
+      name: 'WebKit',
+      use: { browserName: 'webkit' },
+    },
+  ],
+});
+
+
+5. codegen in PW
+-----------------
+
+Codegen in Playwright is a recording tool that captures user actions in the browser and generates Playwright test code automatically, mainly used to speed up
+test creation.
+Use Codegen to get started, move the steps into page objects, and add proper checks and waits.
+Playwright test uses locators (getByRole, getByText, etc.) and Assertions for validations.
+
+Command for start codegen:
+-------------------------	
+npx playwright codegen 
+
+
+usage: 
+------
+Quickly create test scripts
+Helpful for beginners learning Playwright
+Saves time in writing selectors and actions
+Helps identify reliable locators
+
+limitations
+-----------
+Generated code may need cleanup
+Not ideal for large or complex frameworks
+Should be refactored into reusable methods
+
+ex: 
+await page.getByRole('button', { name: 'Login' }).click();
+await page.getByLabel('Username').fill('user1');
+
+
+
+6. MCP Server and Playwright Agent
+------------------------------------
+
+MCP Server
+----------
+
+An MCP server is a bridge or service that lets AI models securely connect to external tools, data sources, or services and use them during a conversation.
+MCP server is not built into Playwright by default. It is an external integration used to let AI interact with Playwright.
+
+Here’s how you can set it up step-by-step to make Copilot generate Playwright code in your preferred design pattern.
+
+Step 1: Install Playwright
+Open VS Code → Create a folder → Open the terminal and run: npm init playwright@latest
+
+Step 2: Configure MCP Server
+Create a file named mcp.json and paste: { "mcpServers": { "playwright": { "command": "npx", "args": [ "@playwright/mcp@latest" ] } } } This ensures your Playwright MCP server is ready to fire up whenever you need it.
+
+Step 3: Prepare Your ICE Prompt File
+Create a .txt file (say code-generate.md) and write your Instruction, Context, and Example (ICE).
+
+
+Follow below ICE pot method to write your perfect prompt :
+
+ICE
+
+Instruction
+-----------
+
+Generate playwright typescript code for leaftaps application in creating a lead using Page Object Model, create separate folder for tests and pages.
+Add comments for every step.
+Follow coding best practices.
+Create test files under "tests" and page files under "pages".
+Data credentials: username = demosalesmanager, password = crmsfa.
+Remaining test input data should use first name= Ravi, last name = R, company name=testleaf.
+Compile and run after generation.
+Debug for failures post-run.
+Show test report at the end.
+
+Context
+-------
+You are an AI assistant generating Playwright TypeScript code for the LeaFtaps application.
+
+Example
+-------
+
+import test from "playwright/test"; test("Login page ", async ({ page }) => { await page.goto("http://leaftaps.com/opentaps/control/main") await page.locator("#username").fill("DemoSalesManager") await page.fill("#password", "crmsfa") await page.click(".decorativeSubmit") await page.click(text='CRM/SFA') const pageTitle = await page.title() console.log(pageTitle) await page.waitForTimeout(5000) })
+
+Step 4: Install GitHub Copilot Click the Extensions icon (or press Ctrl+Shift+X). Search and install GitHub Copilot and GitHub Copilot Chat.
+
+Step 5: Sign in to GitHub Click Accounts (bottom-right of VS Code). Select “Sign in with GitHub to use GitHub Copilot.” Complete the authentication in your browser.
+
+Step 6: Use Copilot with MCP Click the Copilot icon (top-right of VS Code).
+
+Switch mode from Chat to Agent.
+Attach your code-generate.md file using the pin icon.
+In the Add context(#) box, type: "Generate code"
+Hit enter — watch your Playwright POM structure appear like magic.
+
+
+Playwright Agent:
+-----------------
+
+Playwright Agent works using three conceptual AI roles: Planner, Generator, and Healer. These roles together allow users to focus only on what to test, 
+not how to implement it.
+
+Planner
+-------
+
+The Planner understands the user’s requirement written in natural language and converts it into a structured test plan. It identifies the application flow, 
+decides the order of steps, and chooses the automation design approach such as Page Object Model, fixtures, or test grouping. It also determines what pages,
+actions, and validations are required before any code is written.
+
+Generator
+---------
+
+The Generator takes the plan created by the Planner and converts it into actual Playwright code. It creates the required folder structure, page classes, and
+test files. It writes clean TypeScript code with proper locators, assertions, async handling, and comments, following Playwright best practices. At this stage, 
+the complete automation framework is generated automatically.
+
+Healer
+------
+
+The Healer executes the generated Playwright tests and monitors the results. If a test fails due to issues like timing problems, incorrect locators, or flaky 
+waits, the Healer analyzes the failure and updates the code to fix it. It then re-runs the tests to confirm stability. This reduces manual debugging and makes 
+tests more reliable.	
+
+
+7. GitHub Actions
+------------------
+
+GitHub is a version control and collaboration platform, and GitHub Actions is its built-in automation and CI/CD service that lets teams run workflows for testing, 
+building, and deploying code based on repository events.
+
+Ex: 
+
+# 📘 GitHub Repository Workflow Guide
+
+## 1. Creating a New Repository from Command Line
+
+
+# Create README file
+echo "# github-actions-aug" >> README.md
+
+# Initialize local repository
+git init
+
+# Commit the README
+git commit -m "first commit"
+
+# Rename branch to main
+git branch -M main
+
+# Add remote GitHub repo
+git remote add origin https://github.com/ravindranr90/github-actions-aug.git
+
+# Stage all files and commit
+git add .
+git commit -m "Initial commit"
+
+# Push changes to GitHub
+git push -u origin main
+
+
+---
+
+## 2. Cloning or Pulling Files from GitHub
+
+### 🔹 First time (clone entire repo)
+
+
+git clone https://github.com/ravindranr90/github-actions-aug.git
+cd github-actions-aug
+
+
+### 🔹 Already cloned (get latest changes)
+
+
+git pull origin main
+
+
+### 🔹 Pull only one specific file (less common)
+
+
+git fetch origin main
+git checkout origin/main -- tests/01-launchBrowser.spec.ts
+
+
+---
+
+## 3. Pushing Files to GitHub
+
+### 🔹 Push a single file
+
+git add tests/filename.spec.ts
+git commit -m "Add test for filename"
+git push origin main
+
+### 🔹 Push multiple specific files
+
+git add tests/filename1.spec.ts tests/filename2.spec.ts
+git commit -m "Update tests filename1 and filename2"
+git push origin main
+
+### 🔹 Push all changes in a specific folder
+
+git add tests/
+git commit -m "Commit all changes inside tests folder"
+git push origin main
+
+
+### 🔹 Push everything inside `tests/` but not other files
+
+(same as above)
+
+git add tests/
+git commit -m "Commit all changes inside tests folder"
+git push origin main
+
+---
+
+## 4. Typical Update Workflow
+
+If you edited a file in VS Code (example: `03-page-fixture.spec.ts`):
+
+# Step 1: Stage the file
+git add tests/03-page-fixture.spec.ts
+
+# Step 2: Commit changes
+git commit -m "Update test to log page title in 03-page-fixture.spec.ts"
+
+# Step 3: Push to GitHub
+git push origin main
+
+---
+
+✅ **Tips:**
+
+* Always run `git status` to check staged/unstaged changes.
+* Use meaningful commit messages.
+* Use `git pull origin main` before pushing to avoid conflicts.
+
+8. PW intergation API and UI.
+------------------------------
+
+Playwright allows seamless integration of API and UI testing in a single framework, which is one of its strong features.
+Playwright supports API and UI integration by allowing API calls using request.newContext() and validating the results through UI automation in the same test framework.
+
+ex: 
+const apiContext = await request.newContext();
+
+const response = await apiContext.post('/users', {
+  data: { name: 'John' }
+});
+
+await page.goto('/login');
+await page.fill('#username', 'John');
+await page.click('#login');
+
+
+9. Geolocation Mocking
+-----------------------
+
+Geolocation mocking in Playwright allows you to simulate a user’s physical location (latitude and longitude) without actually being in that place. This is useful for 
+testing location-based features like maps, delivery availability, or regional content.
+
+ex:This mocks the location as San Francisco.
+
+const context = await browser.newContext({
+  geolocation: { latitude: 37.7749, longitude: -122.4194 },
+  permissions: ['geolocation']
+});
+
+const page = await context.newPage();
+await page.goto('https://example.com');
+
+
+10. Device Emulation
+--------------------
+
+Device emulation in Playwright allows testing applications on different mobile and tablet devices by simulating viewport size, user agent, and touch support using
+built-in device descriptors.
+
+ex:
+
+import { devices } from '@playwright/test';
+
+const iPhone = devices['iPhone 14'];
+
+const context = await browser.newContext({
+  ...iPhone
+});
+
+const page = await context.newPage();
+await page.goto('https://example.com');
+
+
+
+11. Allure Reporting
+--------------------
+
+Allure Framework is a test reporting tool used to generate interactive, visual test execution reports from automation frameworks like Playwright, Selenium, TestNG,
+JUnit, etc.
+
+Supported via plugin
+Commonly used in enterprise projects
+
+Commands for Allure Reports:
+---------------------------
+Step1 :
+-------
+
+in the configuration make below changes:
+reporter: [['html'], ['allure-playwright']],
+
+Step2 :
+-------
+
+And execute below commands in the terminal :
+
+1. npm i -D allure-playwright
+
+2. npm i -g allure-commandline --save-dev
+
+3. Execute the tests:
+   npx playwright test fileName --project=chromium
+
+4. allure serve
+
+Advantages
+-----------
+
+Clear and professional reports
+Easy failure debugging
+Good stakeholder visibility
+CI/CD friendly (Jenkins, GitHub Actions, Azure DevOps)
+
+Limitations
+-----------
+
+Extra setup required
+Report generation step needed
+Not a replacement for logs or debugging tools
+
+
+
+12. Visual Regression
+---------------------
+
+Visual regression testing in Playwright helps you detect unintended UI changes by comparing screenshots of the application against approved baseline images.
+
+Playwright provides native visual testing support as below, No third-party tool is required.
+
+expect(page).toHaveScreenshot();
+expect(locator).toHaveScreenshot();
+
+ex:
+
+import { expect, test } from "@playwright/test";
+
+test(`Visual testing`,async ({page}) => {
+    
+    await page.goto(`https://www.amazon.in/`);
+
+    const oldScreenShot = await page.screenshot({path:'screenshot/amazon_home.png'});
+
+    expect(oldScreenShot).toMatchSnapshot("amazon_home.png")
+})
+
+
+test.only(`Visual testing for an element`,async ({page}) => {
+    
+    await page.goto(`http://leaftaps.com/opentaps/control/main`);
+
+    const ele = page.locator("#username")
+
+    const ss1 = await ele.screenshot({path:'screenshot/leaftaps_login.png'});
+
+    expect(ss1).toMatchSnapshot("leaftaps_login.png")
+})
+
+
+
+13. Network Interception
+------------------------
+
+Network interception in Playwright allows you to monitor, block, modify, or mock network requests and responses. It is commonly used to test edge cases, isolate
+frontend behavior, and make tests faster and more stable.
+
+ex:
+
+🔹 Intercept & Continue a Request
+await page.route('**/api/users', route => {
+  route.continue();
+});
+
+🔹 Mock an API Response
+await page.route('**/api/users', route => {
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      users: [{ id: 1, name: 'John' }]
+    })
+  });
+});
+
+
+✔ Useful when backend is unstable or unavailable.
+
+🔹 Modify Request Headers
+await page.route('**/api/**', route => {
+  const headers = {
+    ...route.request().headers(),
+    Authorization: 'Bearer mock-token'
+  };
+
+  route.continue({ headers });
+});
+
+🔹 Block Requests
+await page.route('**/*.png', route => route.abort());
+
+
+✔ Speeds up tests by blocking images or ads.
+
+🔹 Validate Network Requests
+page.on('request', request => {
+  if (request.url().includes('/login')) {
+    console.log(request.postData());
+  }
+});
+
+🔹 Wait for API Response
+const response = await page.waitForResponse('**/api/users');
+expect(response.status()).toBe(200);
+
+🔹 Simulate Network Failure
+await page.route('**/api/users', route => route.abort('failed'));
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
